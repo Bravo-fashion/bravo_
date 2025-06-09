@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interactive Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles for animations and interactivity (Beyond Tailwind) */
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #8b5cf6, #3b82f6); /* From purple-500 to blue-500 */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        .slide-in-left {
+            animation: slideInLeft 0.8s ease-out forwards;
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .benefit-button:hover {
+             transform: scale(1.05); /* slightly larger on hover */
+             transition: transform 0.2s ease-in-out;
+             border-color: rgba(167, 139, 250, 0.3);  /* Lighter border on hover */
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add some shadow on hover*/
+        }
+        /* The new script handles display, so we remove the specific product-card opacity transitions for now */
+        .product-card {
+             /* Existing Tailwind classes for width and rounding */
+        }
+
+        .nav-link:hover {
+            color: white;
+            transition: color 0.3s ease;
+        }
+        .mobile-menu-open {
+            max-height: 500px;  /* Expand to a maximum height. */
+            overflow: hidden;      /* Ensure content doesn't overflow. */
+            transition: max-height 0.3s ease-in-out; /* Smooth transition. */
+        }
+
+        .mobile-menu-closed {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        /* Add this to make sure text is visible */
+        .benefit-button p {
+            display: block;
+            line-height: 1.5;
+            margin-bottom: 0.5em;
+            overflow-wrap: break-word; /* Add this line */
+        }
+        .benefit-button {
+            padding-bottom: 3em; /* Increased padding to ensure space for descenders */
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Styles for the new Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            padding-top: 5rem; /* Space for the fixed navbar */
+            box-sizing: border-box; /* Include padding in height calculation */
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #1a202c; /* A dark gray from your theme */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+            max-width: 800px; /* Adjust as needed, smaller than full screen */
+            width: calc(100% - 2rem); /* 1rem margin on each side for small screens */
+            max-height: calc(100% - 7rem); /* Adjusted for top margin and bottom margin */
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #cbd5e0; /* gray-300 */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .modal-close-button:hover {
+            color: #ffffff;
+        }
+
+        /* Custom styles for product slider arrows */
+        .product-slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 9999px; /* full rounded */
+            cursor: pointer;
+            z-index: 10;
+            font-size: 1.5rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .product-slider-arrow:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .product-slider-arrow.left-0 {
+            left: 0.5rem;
+        }
+        .product-slider-arrow.right-0 {
+            right: 0.5rem;
+        }
+
+        /* Custom scrollbar hide for the product slider */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-gray-950 font-inter">
+    <nav class="bg-gray-900/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="text-2xl font-bold text-white">
+                <span class="gradient-text">BRAVO</span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#home" class="text-gray-300 hover:text-white transition-colors duration-300 nav-link desktop-nav-link">Home</a>
+                <a href="#about" class="text-gray-300 hover:text-white transition-colors duration-300 nav-link desktop-nav-link">About Us</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-300 hover:text-white">
+                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                    <svg id="close-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 hidden">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-gray-900 border-b border-gray-800 px-4 py-2 space-y-2 mobile-menu-closed">
+            <a href="#home" class="block text-gray-300 hover:text-white transition-colors duration-300 py-2 nav-link mobile-nav-link">Home</a>
+            <a href="#about" class="block text-gray-300 hover:text-white transition-colors duration-300 py-2 nav-link mobile-nav-link">About Us</a>
+        </div>
+    </nav>
+
+    <header id="home" class="bg-gradient-to-br from-gray-900 to-black text-white py-32 md:py-48 text-center" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 gradient-text fade-in" style="animation-delay: 0.2s; transform: translateY(-3cm);">
+            Style That Speaks All
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mt-6 fade-in" style="animation-delay: 0.5s;">
+            Style from Head to Toe, Daily
+        </p>
+        <div class="mt-10 fade-in" style="animation-delay: 0.8s;">
+            <a href="#blogs" id="explore-blogs-btn" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-full text-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 inline-flex items-center">
+                Explore Our Blogs
+            </a>
+        </div>
+    </header>
+
+    <section id="benefits" class="bg-gray-900 py-24 md:py-32">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 gradient-text">
+                For Everyone
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <button class="bg-gray-800/90 backdrop-blur-md rounded-xl p-8 shadow-lg border border-gray-700 hover:border-purple-500/30 transition-all duration-300 flex flex-col items-center text-center benefit-button">
+                    <div class="mb-6">
+                         
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Style That Moves With You</h3>
+                    <p class="text-gray-300 text-lg">From casual fits to statement looks — discover outfits that fit your every mood</p>
+                </button>
+                <button class="bg-gray-800/90 backdrop-blur-md rounded-xl p-8 shadow-lg border border-gray-700 hover:border-purple-500/30 transition-all duration-300 flex flex-col items-center text-center benefit-button">
+                    <div class="mb-6">
+                        
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Step Into Something Better</h3>
+                    <p class="text-gray-300 text-lg">Find your perfect pair — whether it’s bold heels, comfy sneakers, or everyday essentials.</p>
+                </button>
+                <button class="bg-gray-800/90 backdrop-blur-md rounded-xl p-8 shadow-lg border border-gray-700 hover:border-purple-500/30 transition-all duration-300 flex flex-col items-center text-center benefit-button">
+                    <div class="mb-6">
+                        
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Shine in Every Moment</h3>
+                    <p class="text-gray-300 text-lg">Elegant, modern, and made to dazzle — jewelry that completes your style story.</p>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="products" class="bg-gray-950 py-20 md:py-32">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 gradient-text" style="transform: translateY(-1cm);">
+                Top Selling Products
+            </h2>
+            <div class="relative">
+                <div id="product-container" class="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-lg border border-gray-700 text-white text-center max-w-2xl mx-auto" style="height: 400px; width: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <!-- All product images for the carousel, now wrapped in anchor tags and using object-contain -->
+                    <a href="#" class="w-full h-full flex items-center justify-center" style="display: block;">
+                        <img class="w-full h-full object-contain rounded-md product-card" src="ladies_green_pant.jpg">
+                    </a>
+                    <a href="#" class="w-full h-full flex items-center justify-center" style="display: none;">
+                        <img class="w-full h-full object-contain rounded-md product-card" src="mens_shirt.png">
+                    </a>
+                    <a href="#" class="w-full h-full flex items-center justify-center" style="display: none;">
+                        <img class="w-full h-full object-contain rounded-md product-card" src="puma_white_sneaker.png">
+                    </a>
+                </div>
+                <div id="product-dots" class="flex justify-center mt-12">
+                    <button class="w-3 h-3 rounded-full mx-1 bg-purple-500"></button>
+                    <button class="w-3 h-3 rounded-full mx-1 bg-gray-600 hover:bg-gray-500"></button>
+                    <button class="w-3 h-3 rounded-full mx-1 bg-gray-600 hover:bg-gray-500"></button>
+                </div>
+            </div>
+            <!-- Removed the "All Products" button div -->
+        </div>
+    </section>
+
+    <!-- Blogs Section - Now populated with the new tiles -->
+    <section id="blogs" class="bg-gray-900 py-20 md:py-32">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 gradient-text">
+                Our Blogs
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+
+                <!-- Blog Card 1 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Top 10 Summer Outfits</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Stay cool and stylish this season with our curated list of the best budget-friendly outfits for Indian women. These picks are perfect for daily wear, brunches, or weekend getaways. Click to explore breathable fabrics and trendy co-ord sets.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="1">Read More →</a>
+                </div>
+
+                <!-- Blog Card 2 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Best Ethnic Wear (2025)</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Celebrate this year's festivals in style with the most-loved ethnic picks for men and women. From flowy anarkalis to elegant kurtas, discover pieces that blend tradition and modern trends.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="2">Read More →</a>
+                </div>
+
+                <!-- Blog Card 3 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Men's Wardrobe Must-Haves</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Build a stylish and versatile wardrobe with these essentials for the modern Indian man. From casual tees to blazers, here’s what you need to elevate your everyday look.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="3">Read More →</a>
+                </div>
+
+                <!-- Blog Card 4 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Accessorize Like a Pro: A Guide</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">The right accessories can elevate any outfit. From statement jewelry to chic handbags, discover how to perfect your look and add that finishing touch.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="4">Read More →</a>
+                </div>
+
+                <!-- Blog Card 5 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">The Rise of Sustainable Fashion</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Explore the growing movement of sustainable fashion. Learn about eco-friendly materials, ethical production, and how you can make more conscious style choices.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="5">Read More →</a>
+                </div>
+
+                <!-- Blog Card 6 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Mastering Your Personal Color Palette</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Unlock the secrets to looking your best by understanding your personal color palette. Discover shades that complement your skin tone and enhance your features.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="6">Read More →</a>
+                </div>
+
+                <!-- Blog Card 7 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Footwear Trends for Every Occasion</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Step into style with our guide to the latest footwear trends. From casual sneakers to elegant heels, find the perfect pair for any event.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="7">Read More →</a>
+                </div>
+
+                <!-- Blog Card 8 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">The Art of Layering Clothes</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Master the art of layering to create versatile and stylish outfits for any weather. Learn how to combine different pieces for a cohesive look.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="8">Read More →</a>
+                </div>
+
+                <!-- Blog Card 9 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Vintage Fashion: A Timeless Appeal</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Dive into the world of vintage fashion and discover why classic styles continue to inspire. Find tips on incorporating vintage pieces into your modern wardrobe.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="9">Read More →</a>
+                </div>
+
+                <!-- Blog Card 10 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Caring for Your Clothes: The Ultimate Guide</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Extend the life of your favorite garments with our comprehensive guide to fabric care, washing techniques, and proper storage.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="10">Read More →</a>
+                </div>
+                <!-- Blog Card 11 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Winter Wardrobe Essentials</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Stay warm and stylish this winter with essential clothing items. From cozy sweaters to fashionable coats, get ready for the colder months.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="11">Read More →</a>
+                </div>
+
+                <!-- Blog Card 12 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Spring Styles: Fresh Looks for the Season</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Embrace the new season with light fabrics, pastel colors, and floral patterns. Discover the perfect outfits for spring.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="12">Read More →</a>
+                </div>
+
+                <!-- Blog Card 13 - NEW: How to style a kurta in 5 different ways -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">How to style a kurta in 5 different ways</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Transform your favorite kurta for any occasion! Discover five unique ways to style this versatile ethnic wear, from casual outings to festive gatherings. Learn how to mix and match with different bottoms, accessories, and layering techniques to create fresh and exciting looks. Elevate your everyday style with these easy-to-follow tips.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="13">Read More →</a>
+                </div>
+
+                <!-- Blog Card 14 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Workwear Wonders: Professional Attire</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Upgrade your professional wardrobe with our selection of smart and stylish workwear. Look polished and confident in every meeting.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="14">Read More →</a>
+                </div>
+
+                <!-- Blog Card 15 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Casual Chic: Effortless Everyday Style</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Discover the art of casual chic with our tips for creating comfortable yet fashionable daily looks. Perfect for running errands or relaxed weekends.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="15">Read More →</a>
+                </div>
+
+                <!-- Blog Card 16 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Party Perfect: Outfits for Special Occasions</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Shine bright at your next event with our guide to dazzling party outfits. From elegant gowns to trendy jumpsuits, find your perfect festive look.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="16">Read More →</a>
+                </div>
+
+                <!-- Blog Card 17 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Travel Style: Fashion on the Go</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Pack smart and travel in style with our tips for creating comfortable and fashionable travel outfits. Perfect for any destination.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="17">Read More →</a>
+                </div>
+
+                <!-- Blog Card 18 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Denim Delights: The Ultimate Guide to Jeans</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Find your perfect pair of jeans with our comprehensive guide to different fits, washes, and styles. Denim never goes out of fashion!</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="18">Read More →</a>
+                </div>
+
+                <!-- Blog Card 19 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Sporty Chic: Blending Comfort and Style</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Master the sporty chic look with our tips for combining athletic wear with everyday fashion. Perfect for a comfortable yet stylish vibe.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="19">Read More →</a>
+                </div>
+
+                <!-- Blog Card 20 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Minimalist Wardrobe: Less is More</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Simplify your style with our guide to building a minimalist wardrobe. Focus on versatile pieces that can be mixed and matched easily.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="20">Read More →</a>
+                </div>
+
+                <!-- Blog Card 21 - NEW: Cotton vs Rayon vs Linen -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Cotton vs Rayon vs Linen</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Choosing the right fabric is essential for comfort and style, especially in varying climates. Dive into the world of textiles and compare cotton, rayon, and linen. Understand their unique properties, benefits, and best uses, helping you make informed decisions for your wardrobe.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="21">Read More →</a>
+                </div>
+
+                <!-- Blog Card 22 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Street Style Savvy: Urban Fashion Guide</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Master the urban look with our street style guide. Learn how to combine comfort and edge for a trendy city vibe.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="22">Read More →</a>
+                </div>
+
+                <!-- Blog Card 23 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Colour Blocking: Bold and Beautiful</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Experiment with color blocking to create striking and vibrant outfits. Learn how to combine contrasting hues for a powerful statement.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="23">Read More →</a>
+                </div>
+
+                <!-- Blog Card 24 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Personal Styling: Finding Your Unique Look</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Discover your personal style and express yourself through fashion. Tips on understanding your body type, preferences, and lifestyle.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="24">Read More →</a>
+                </div>
+
+                <!-- Blog Card 25 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Fashion for All Ages: Ageless Style</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Fashion has no age limit! Discover tips and inspiration for stylish outfits that suit every age group, embracing confidence and elegance.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="25">Read More →</a>
+                </div>
+
+                <!-- Blog Card 26 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Upcycling Fashion: Give Your Clothes New Life</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Learn creative ways to upcycle old clothes and accessories into new, fashionable pieces. A sustainable and unique approach to style.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="26">Read More →</a>
+                </div>
+
+                <!-- Blog Card 27 -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Luxury Fashion: Investment Pieces</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Explore the world of luxury fashion and identify investment pieces that will stand the test of time. Quality over quantity for lasting style.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="27">Read More →</a>
+                </div>
+
+                <!-- Blog Card 28 - NEW: Heels vs Flats -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Heels vs Flats</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">The timeless debate: heels or flats? Explore the pros and cons of both, and find out which footwear is best suited for different occasions, comfort levels, and style statements. Whether you're looking for elegance or everyday ease, we've got you covered.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="28">Read More →</a>
+                </div>
+
+                <!-- Blog Card 29 - NEW: Minimalist sunglasses style everyone is buying -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Minimalist sunglasses style everyone is buying</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Step up your eyewear game with the hottest minimalist sunglasses trends. Discover sleek, understated designs that offer maximum style impact. Find out which shapes and colors are perfect for a sophisticated, modern look that complements any outfit.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="29">Read More →</a>
+                </div>
+
+                <!-- Blog Card 30 - NEW: Best smartwatches for fitness and fashion combined -->
+                <div class="blog-card bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 transition duration-300 hover:border-purple-500/30 hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold text-white mb-4">Best smartwatches for fitness and fashion combined</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-6">Merge technology with style! Explore our top picks for smartwatches that not only track your fitness goals but also complement your fashion sense. Find the perfect wearable that seamlessly blends into your lifestyle, offering both functionality and aesthetic appeal.</p>
+                    <a href="#" class="read-more-btn inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300" data-blog-id="30">Read More →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="about" class="bg-gray-900 py-8 border-t border-gray-800 mt-20 text-center">
+        <div class="container mx-auto px-6 text-gray-400">
+            <div class="flex items-center justify-center space-x-6 mb-4">
+                <div class="h-px bg-gray-700 w-1/4 max-w-xs"></div>
+                <!-- Instagram Link -->
+                <a href="https://www.instagram.com/stylewithbravo/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors duration-300">
+                    <i class="fab fa-instagram text-2xl"></i>
+                </a>
+                <!-- Pinterest Link -->
+                <a href="https://www.pinterest.com/stylewithbravo/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors duration-300">
+                    <i class="fab fa-pinterest text-2xl"></i>
+                </a>
+                <div class="h-px bg-gray-700 w-1/4 max-w-xs"></div>
+            </div>
+            <div class="text-white text-2xl font-bold mb-2">BRAVO</div>
+            <p class='mt-2'>
+                Part of affiliate program
+            </p>
+        </div>
+    </footer>
+
+    <!-- Blog Modal Structure -->
+    <div id="blog-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button id="modal-close-button" class="modal-close-button">&times;</button>
+            <h3 id="modal-blog-title" class="text-3xl font-bold text-white mb-4">Blog Title Placeholder</h3>
+
+            <!-- Primary Blog Content Area -->
+            <div id="modal-blog-primary-content" class="text-gray-300 text-base leading-relaxed space-y-4">
+                <!-- Initial blog text will go here -->
+            </div>
+
+            <!-- Product Slider Section -->
+            <div class="relative w-full overflow-hidden mt-6">
+                <button id="product-slider-left-arrow" class="product-slider-arrow left-0 hidden lg:block">&larr;</button>
+                <div id="modal-product-slider" class="flex overflow-x-scroll snap-x snap-mandatory pb-4 scrollbar-hide">
+                    <!-- Product cards will be dynamically populated here -->
+                </div>
+                <button id="product-slider-right-arrow" class="product-slider-arrow right-0 hidden lg:block">&rarr;</button>
+            </div>
+
+            <!-- Secondary Blog Content Area -->
+            <div id="modal-blog-secondary-content" class="text-gray-300 text-base leading-relaxed space-y-4 mt-6">
+                <!-- Secondary blog text will go here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('mobile-menu-closed');
+            mobileMenu.classList.toggle('mobile-menu-open');
+            menuIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+        });
+
+        // Function to handle smooth scrolling
+        function smoothScrollTo(targetId) {
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // Fallback for "about" if element not found (e.g., if ID changes)
+                if (targetId === 'about') {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }
+            }
+        }
+
+        // "Explore Blogs" button functionality
+        const exploreBlogsBtn = document.getElementById('explore-blogs-btn');
+        exploreBlogsBtn.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default anchor link behavior
+            smoothScrollTo('blogs');
+        });
+
+        // Smooth scrolling for desktop navigation links
+        const desktopNavLinks = document.querySelectorAll('.desktop-nav-link');
+        desktopNavLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevent default anchor link behavior
+                const targetId = link.getAttribute('href').substring(1); // Get ID from href
+                smoothScrollTo(targetId);
+            });
+        });
+
+        // Smooth scrolling for mobile navigation links
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+        mobileNavLinks.forEach(link => {
+            // Add event listener to each link to prevent default and handle smooth scroll
+            link.addEventListener('click', (event) => { // FIX: Added event listener here
+                event.preventDefault(); // Prevent default anchor link behavior
+                const targetId = link.getAttribute('href').substring(1); // Get ID from href
+                smoothScrollTo(targetId);
+                // Optionally close mobile menu after clicking a link
+                mobileMenu.classList.remove('mobile-menu-open');
+                mobileMenu.classList.add('mobile-menu-closed');
+                menuIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            });
+        });
+    </script>
+
+    <!-- NEW PRODUCT CAROUSEL SCRIPT -->
+    <script>
+        let currentSlide = 0;
+        // Select anchor tags instead of img tags for the carousel
+        const slides = document.querySelectorAll('#product-container a');
+
+        function showSlide(index) {
+            slides.forEach((link, i) => {
+                link.style.display = i === index ? 'flex' : 'none'; // Use 'flex' to maintain centering
+            });
+            // Update dots based on current slide
+            const productDots = document.querySelectorAll('#product-dots button');
+            productDots.forEach((dot, i) => {
+                dot.classList.toggle('bg-purple-500', i === index);
+                dot.classList.toggle('bg-gray-600', i !== index);
+            });
+        }
+
+        // Initialize the first slide on page load
+        showSlide(currentSlide);
+
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }, 3000); // Change slide every 3 seconds
+
+        // Add event listeners to dots for manual control
+        const productDots = document.querySelectorAll('#product-dots button');
+        productDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index; // Set current slide to the clicked dot's index
+                showSlide(currentSlide); // Show the corresponding slide
+            });
+        });
+    </script>
+
+    <!-- Modal Script -->
+    <script>
+        const blogModalOverlay = document.getElementById('blog-modal-overlay');
+        const modalCloseButton = document.getElementById('modal-close-button');
+        const readMoreButtons = document.querySelectorAll('.read-more-btn');
+        const modalBlogTitle = document.getElementById('modal-blog-title');
+        const modalBlogPrimaryContent = document.getElementById('modal-blog-primary-content');
+        const modalBlogSecondaryContent = document.getElementById('modal-blog-secondary-content');
+        const modalProductSlider = document.getElementById('modal-product-slider');
+        const productSliderLeftArrow = document.getElementById('product-slider-left-arrow');
+        const productSliderRightArrow = document.getElementById('product-slider-right-arrow');
+
+        // Helper function to generate product card HTML
+        function generateProductCardHtml(product) {
+            return `
+                <div class="flex-shrink-0 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5 snap-center bg-gray-800 rounded-xl p-4 mr-4 text-center">
+                    <img src="${product.img || 'https://placehold.co/150x200/CCCCCC/000000?text=Product'}" alt="${product.name}" class="w-full h-48 object-cover rounded-md mb-2">
+                    <p class="text-white font-semibold">${product.name}</p>
+                    <p class="text-gray-400 text-sm">${product.description}</p>
+                    <a href="${product.link || '#'}" class="mt-4 inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-full text-sm hover:from-purple-600 hover:to-blue-600 transition-all duration-300">Buy</a>
+                </div>
+            `;
+        }
+
+        // Sample blog content data with separated sections and products
+        const blogData = {
+            1: {
+                title: "Top 10 Summer Outfits",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">☀️ Stay Stylish Without Breaking the Bank</h4>
+                    <p>Summers can be scorching — but that doesn’t mean your wardrobe has to suffer. Whether you're heading to a brunch, running errands, or just chilling at home, lightweight, breathable, and affordable fashion is the name of the game.</p>
+                    <p>Here are 10 amazing summer outfits under ₹1000— all trendy, all comfortable, and all budget-friendly.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=CoOrdSet", name: "Rayon Co-Ord Set", description: "Why it works: Co-ord sets are a hit this season. This two-piece is breezy and perfect for travel, café dates, or casual hangs.<br/>Fabric: Rayon<br/>Best For: Travel, streetwear", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=FloralMidi", name: "Floral Midi Dress", description: "Why it works: A midi dress that flatters every body type and is easy to throw on during hot days.<br/>Fabric: Georgette blend<br/>Best For: Daily wear, errands", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=A-LineDress", name: "Shirt Collar A-Line Dress", description: "Why it works: Looks polished yet feels like pajamas — win-win for office or WFH.<br/>Fabric: Rayon<br/>Best For: Office, semi-formal settings", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=PinkMaxi", name: "Pink Maxi Dress", description: "Why it works: Flowy, feminine, and airy. One of the best picks for long summer evenings.<br/>Fabric: Georgette<br/>Best For: Dates, outings, brunch", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Trousers", name: "Textured High-Waist Trousers", description: "Why it works: Pair them with any top — tees, kurtis, crop tops — and you’ve got a cool, chic outfit.<br/>Fabric: Rayon-cotton blend<br/>Best For: Everyday casual", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=KurtaDress", name: "Multi-Styling Kurta-Dress", description: "Why it works: Use it as a kurta or wear it solo as a summer dress. Versatile, chic, and worth every rupee.<br/>Fabric: Cotton<br/>Best For: Multi-purpose wardrobe", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=DayDress", name: "Western Day Dress", description: "Why it works: Gives off European summer vibes, yet designed to handle Indian heat.<br/>Fabric: Soft rayon<br/>Best For: Casual daywear", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=PartyDress", name: "Women 's party dress", description: "Why it works: Perfect for when you want to go from casual to festive with just a change in accessories.<br/>Fabric: Rayon<br/>Best For: Low-key parties", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=TieDyeShirt", name: "Tie-Dye Ombre Cotton Shirt", description: "Why it works: Breathable, vibrant, and Instagrammable. A go-to shirt for any bottom wear.<br/>Fabric: 100% Cotton<br/>Best For: Casual, summer brunches", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=EthnicWear", name: "Ethnic Wear", description: "Why it works: Light, ethnic, and elegant. Great for family gatherings or summer festivities.<br/>Fabric: Cotton blend<br/>Best For: Modest wear", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Final Thoughts</h4>
+                    <p>You don’t need to spend a fortune to look and feel fabulous. These outfits are:</p>
+                    <p>🌬️ Light and breathable</p>
+                    <p>🧼 Easy to wash and maintain</p>
+                    <p>💸 Budget-approved under ₹1000</p>
+                    <p>Whether you're heading out or staying in, these picks will keep your style on point all summer long. Start adding to cart and refresh your wardrobe today!</p>
+                `
+            },
+            2: {
+                title: "Best Ethnic Wear (2025)",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🎉 Best Ethnic Wear for Festive Season (2025 Edition)</h4>
+                    <p>✨ Traditional Looks That Shine Bright — For Him & Her</p>
+                    <p>In India, festivals are about color, tradition, celebration — and the perfect outfit. Whether it’s Diwali, Eid, Navratri, or a wedding, you want to wear something that feels festive, fits comfortably, and turns heads.</p>
+                    <p>Here’s a curated selection of the best ethnic outfits for men and women — handpicked to make you look and feel your best this festive season.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=AnarkaliKurta", name: "Anarkali Kurta with Palazzo & Dupatta", description: "An elegant 3-piece set that flows beautifully for temple visits, Diwali pujas, or family dinners.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=FloralKurta", name: "Floral Kurta Set with Pants & Dupatta", description: "A floral beauty in breathable fabric. Perfect for day events or intimate gatherings.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BlackKurta", name: "Black Straight Kurta Set with Dupatta", description: "Bold and classy, this black outfit with golden accents is ideal for nighttime festivities.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=YellowKurta", name: "Yellow Ethnic Kurta Set", description: "Simple yet vibrant, this set adds sunshine to any celebration. Great for day pujas or haldi ceremonies.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=StraightKurta", name: "Straight Kurta with Trousers", description: "Minimal yet festive. For those who love subtlety and grace during cultural occasions.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=MensKurta", name: "Men’s Kurta with Churidar", description: "Classic and clean — a go-to for most Indian festivals. Pair it with mojaris for a traditional touch.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PrintedKurta", name: "Men’s Printed Ethnic Kurta Set", description: "Printed with finesse, this kurta set adds flair to evening events or sangeet functions.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CottonKurta", name: "Men’s Cotton Blend Kurta", description: "A lightweight and simple option in earthy tones. Great for summer celebrations and temple visits.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BeigeKurta", name: "Men’s Classic Beige Kurta Set", description: "Nothing says 'Indian festive' quite like a beige silk kurta with elegant detailing.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=PathaniSet", name: "Men’s Embroidered Pathani Set", description: "For a bold, structured ethnic look, this Pathani suit is a total showstopper.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">🧵 Final Thoughts</h4>
+                    <p>Festivals are your moment to shine — and your outfit should reflect that. Whether you're into bold prints or subtle elegance, there's an ethnic look here for every personality.</p>
+                    <p>Women can opt for breathable sets, flowy anarkalis, or floral-printed kurtas.</p>
+                    <p>Men can go classic with churidars or experiment with modern prints and Pathani suits.</p>
+                `
+            },
+            3: {
+                title: "Men's Wardrobe Must-Haves",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👞 Build a Smart Wardrobe That Does It All</h4>
+                    <p>A modern man’s wardrobe needs to be more than just stylish — it should be versatile, comfortable, and ready for every occasion. Whether you’re dressing for work, a weekend brunch, or a last-minute party, having a few core wardrobe essentials can save time, money, and stress.</p>
+                    <p>We've rounded up India's best wardrobe staples for men, covering everything from casualwear to office-ready looks. These picks are timeless, easy to pair, and designed for the Indian lifestyle.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SlimFitShirt", name: "Men’s Solid Slim Fit Shirt", description: "A solid-colored cotton shirt is a casual must-have. Wear it with jeans or chinos for a smart off-duty look.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CrewNeckTee", name: "Crew Neck Cotton T-Shirt (Pack of 2)", description: "Perfect for everyday comfort. Ideal for layering or lounging on weekends.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SlimFitJeans", name: "511 Slim Fit Stretch Jeans", description: "Every guy needs a dependable pair of blue jeans. These offer stretch and style in equal measure.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BomberJacket", name: "Men’s Bomber Jacket", description: "Lightweight and street-smart — throw this on to instantly elevate any casual outfit.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=FormalShirt", name: "Men’s Formal Shirt", description: "A crisp white or light blue shirt is a professional staple. Van Heusen shirts offer a clean, slim fit that works across industries.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=FormalTrousers", name: "Men’s Flat Front Formal Trousers", description: "Pair these with your formal shirt for an effortless office look that’s sharp and breathable.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MenBlazer", name: "Men’s Blazer", description: "For presentations or formal meetings, a well-fitted blazer adds polish and confidence to your outfit.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=GymTShirt", name: "Dry-Fit Gym T-Shirt", description: "Breathable and sweat-wicking, this tee is great for gym sessions or summer errands.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Joggers", name: "Athleisure Joggers", description: "Hybrid trousers that work for workouts, casual days, or even work-from-home life.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=DerbyShoes", name: "Men’s Formal Derby Shoes", description: "Every wardrobe needs a sleek pair of formal shoes. These go with trousers, jeans, and even ethnic wear.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=AnalogWatch", name: "Analog Watch with Leather Strap", description: "A quality timepiece elevates your overall look. This one pairs beautifully with both formal and casual wear.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">✅ Final Word</h4>
+                    <p>Every man deserves a wardrobe that works as hard as he does — whether it’s dressing down for the weekend or looking sharp in the boardroom.</p>
+                    <p>By investing in a few key essentials like a well-fitted blazer, durable jeans, and smart shirts, you’ll always be ready — and stylish — for whatever life throws your way.</p>
+                `
+            },
+            4: {
+                title: "Accessorize Like a Pro: A Guide",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👜 Why Accessories Matter</h4>
+                    <p>Accessories are the easiest way to elevate an outfit from basic to bold. Whether you're dressing up a simple top or completing an ethnic look, the right pair of sunglasses, belt, or earrings can define your entire aesthetic.</p>
+                    <p>In this guide, we walk you through essential accessories that add depth and personality to your style. You don’t need a massive collection — just the right items that align with your wardrobe and mood.</p>
+                    <p>Start with versatile pieces you can reuse across outfits, like a structured mini bag, a clean belt, or hoop earrings. Build from there. These simple additions can take your look to the next level without overwhelming it.</p>
+                    <p>Let’s explore the top accessory picks that you can easily incorporate into your style rotation</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MiniBag", name: "Structured Mini Bag", description: "Sleek, compact, and easy to carry for both casual and dressy looks.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=HoopEarrings", name: "Classic Hoop Earrings", description: "A timeless favorite that works with everything from tees to tunics.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LeatherBelt", name: "Slim Faux Leather Belt", description: "Great for defining your waistline and adding polish to oversized outfits.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Choker", name: "Minimalist Choker", description: "Adds a clean edge to your neckline without overdoing the drama.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=RoundSunglasses", name: "Round Frame Sunglasses", description: "Stylish and face-flattering with just the right retro touch.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Accessories are the bridge between a simple outfit and a stunning one. With the right pieces in hand — or around your waist, neck, or face — you can easily shift from casual to confident. Start small, build your collection, and let your accessories speak for your style.</p>
+                `
+            },
+            5: {
+                title: "The Rise of Sustainable Fashion",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🌍 Fashion That Cares</h4>
+                    <p>Fashion has always been about self-expression, but now it’s also about responsibility. Sustainable fashion is gaining momentum, with more people choosing pieces that are gentle on the environment without compromising on style.</p>
+                    <p>This blog explores simple ways to build a wardrobe that aligns with conscious living — starting with clothing that’s durable, made from natural materials, and designed to be worn again and again. Whether you're switching to organic fabrics or choosing timeless silhouettes, sustainability can be both stylish and satisfying.</p>
+                    <p>Start small. One garment at a time, you're not just changing your look — you're contributing to something bigger.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=OrganicTee", name: "Relaxed Organic Cotton Tee", description: "A breathable, go-to basic made from natural fibers.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=LinenPants", name: "Linen Straight-Fit Pants", description: "Light, airy, and perfect for summer days or casual evenings.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=RecycledTote", name: "Recycled Tote Bag", description: "Strong, spacious, and reusable — perfect for errands or everyday carry.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=PlantDyedScarf", name: "Plant-Dyed Scarf", description: "Adds a soft color accent while being gentle on your skin and the planet.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=EcoShirt", name: "Minimal Button-Down Shirt", description: "A classic piece made with eco-conscious production techniques.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Sustainable fashion isn’t about sacrificing style — it’s about making thoughtful choices. From fabric to fit, investing in better-quality essentials helps reduce waste, support ethical practices, and make your wardrobe work smarter. One change at a time, your fashion footprint becomes lighter and brighter.</p>
+                `
+            },
+            6: {
+                title: "Mastering Your Personal Color Palette",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🎨 Wear Your Confidence</h4>
+                    <p>Color is one of the most powerful tools in fashion. It can change how you feel, how others perceive you, and even how confident you appear. But not every color works the same for everyone — discovering your personal color palette is the first step to building a wardrobe that really feels like you.</p>
+                    <p>In this guide, we explore how to identify your undertone (warm, cool, or neutral) and use that to guide your outfit choices. You’ll also learn how to build harmony by pairing base tones with accent shades for a balanced, bold, or subtle look.</p>
+                    <p>Once you know your palette, shopping and styling become effortless — and your wardrobe becomes more cohesive and expressive.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PastelKurta", name: "Soft Pastel Kurta", description: "Ideal for cool undertones, great for both daily wear and outings.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=EarthTonePalazzo", name: "Earth Tone Palazzo Pants", description: "Flattering for warm-toned skin and perfect for layering neutrals.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LinenShirt", name: "Neutral Linen Shirt", description: "A breathable, versatile staple that matches any accent piece.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=JewelToneScarf", name: "Jewel Tone Scarf", description: "Adds vibrance to solid outfits while complementing bold skin tones.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ColorBlockTote", name: "Color-Blocked Tote Bag", description: "A statement piece that helps you experiment without going overboard.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Color is more than a visual — it's emotional. Mastering your palette allows you to express yourself with ease, enhance your natural features, and build a wardrobe where every piece feels intentional. Start with shades you feel great in — and build your palette from there.</p>
+                `
+            },
+            7: {
+                title: "Footwear Trends for Every Occasion",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👠 Ground Your Look</h4>
+                    <p>Shoes are the silent heroes of every outfit. Whether you’re running errands, attending a wedding, or heading to brunch, the right footwear pulls your look together — and keeps you comfortable while doing it.</p>
+                    <p>In this post, we explore the latest footwear trends that are practical, stylish, and made for real-life movement. From relaxed sliders to structured heels, we’ve chosen pairs that blend fashion with function — all while adding flair to your wardrobe.</p>
+                    <p>Step into comfort and confidence with these trending picks.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=WhiteSneakers", name: "White Everyday Sneakers", description: "Clean, casual, and versatile enough to pair with anything.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Juttis", name: "Embroidered Slip-On Juttis", description: "A festive favorite with comfort and culture.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BlockHeels", name: "Square-Toe Block Heels", description: "Adds height and elegance without compromising comfort.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Sliders", name: "Crossover Strap Sliders", description: "Great for quick errands or weekend lounging.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LaceUpBoots", name: "High-Ankle Lace-Up Boots", description: "Bold and sturdy, ideal for layering with jeans or dresses.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>A great outfit deserves great shoes — and the right pair can take your style (and mood) up a notch. With these trend-forward, wear-everywhere picks, your wardrobe stays ready for whatever life throws your way.</p>
+                `
+            },
+            8: {
+                title: "The Art of Layering Clothes",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🧥 More Than Just Warmth</h4>
+                    <p>Layering isn’t just a winter trick — it’s a year-round styling strategy that adds depth and personality to your look. Whether you're experimenting with textures, building dimension, or just trying to transition between seasons, layering helps you do more with less.</p>
+                    <p>In this post, we break down how to layer for different occasions and weather, from lightweight scarves in summer to jackets over traditional wear. With a few staple pieces, you can create multiple looks without needing an entire new wardrobe.</p>
+                    <p>Layering is also a great way to play with proportions, contrast, and color.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LonglineShirt", name: "Longline Cotton Shirt", description: "Works over tank tops, crop tops, and kurtas alike.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=LightweightJacket", name: "Open-Front Lightweight Jacket", description: "Adds structure and comfort without overheating.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=DenimShirt", name: "Oversized Denim Shirt", description: "Versatile, trendy, and easy to tie or wear loose.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=SleevelessKurti", name: "Neutral Sleeveless Kurti", description: "A base layer that pairs beautifully under jackets or shrugs.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PrintedScarf", name: "Sheer Printed Scarf", description: "Adds pattern and elegance without adding weight.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Layering gives your wardrobe new life and creative edge. It’s a tool to express mood, personality, and versatility without overdoing it. Start with light layers and play with contrasts — the result will be effortlessly chic.</p>
+                `
+            },
+            9: {
+                title: "Vintage Fashion: A Timeless Appeal",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🕰️ Old is Gold</h4>
+                    <p>Vintage fashion isn’t just a trend — it’s a style statement that echoes history, elegance, and sustainability. Whether it’s a polka-dot dress, flared trousers, or embroidered blouses, vintage pieces carry a charm modern fashion often tries to recreate.</p>
+                    <p>In this post, we explore how vintage styles continue to influence modern wardrobes and how you can incorporate them effortlessly. From thrift store finds to grandma’s saris, the past offers a lot of present-day inspiration.</p>
+                    <p>Vintage dressing is also a way to express individuality and timeless confidence.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PeterPanBlouse", name: "Peter Pan Collar Blouse", description: "Feminine and classic, pairs well with high-waist pants or skirts.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=FlaredJeans", name: "High-Waisted Flared Jeans", description: "A retro revival that’s comfortable and flattering for all body types.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PolkaDotDress", name: "Polka Dot Midi Dress", description: "Perfect for summer days with a vintage twist.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=VintageBrooch", name: "Vintage Brooch or Pin", description: "Adds a delicate, heirloom-like detail to coats and bags.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PrintedBlazer", name: "Boxy Printed Blazer", description: "Layer it over dresses or trousers for a structured, throwback silhouette.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Vintage fashion is about more than nostalgia — it’s about lasting style and thoughtful choices. Start small by mixing vintage accessories or garments with your daily looks. You'll not only stand out but also embrace a more sustainable, story-rich style.</p>
+                `
+            },
+            10: {
+                title: "Caring for Your Clothes: The Ultimate Guide",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🧼 Love Your Wardrobe Longer</h4>
+                    <p>Taking care of your clothes isn’t just about laundry — it’s about extending the life of pieces you love. With a few good habits, your wardrobe can stay fresh, vibrant, and stylish for years.</p>
+                    <p>In this post, we walk you through fabric-specific care, smart storage solutions, and easy fixes that help preserve your garments. It's not just about looking good — it's about being mindful too.</p>
+                    <p>Proper care reduces waste and saves you money in the long run.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MeshBags", name: "Mesh Laundry Bags", description: "Prevent damage to delicate fabrics during washing.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Detergent", name: "Fabric-Specific Detergent", description: "Protects the quality and color of cotton, wool, and synthetics.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Hangers", name: "Wooden Hangers", description: "Maintain garment shape and avoid creases.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=LintRemover", name: "Lint Remover Tool", description: "Keep sweaters and coats looking fresh.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=StorageBags", name: "Vacuum Storage Bags", description: "Great for seasonal clothes and reducing closet clutter.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Clothing care is a simple yet powerful way to maintain style. With just a little effort, you’ll make your favorite pieces last longer — keeping them looking (and feeling) new.</p>
+                `
+            },
+            11: {
+                title: "Winter Wardrobe Essentials",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">❄️ Style That Warms</h4>
+                    <p>Cold weather doesn’t mean compromising on fashion. Winter is the perfect time to bring out textures, layering, and cozy yet classy outfits.</p>
+                    <p>This post highlights the must-haves for a functional and fashionable winter wardrobe. From base layers to statement coats, discover what will keep you warm without losing style points.</p>
+                    <p>It’s all about layering, comfort, and contrast.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PufferJacket", name: "Puffer Jacket", description: "Insulated and stylish for daily wear.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Overcoat", name: "Wool Blend Overcoat", description: "Timeless elegance, perfect for both casual and formal looks.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Turtleneck", name: "Turtleneck Sweater", description: "Warm and versatile, great for layering.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=ThermalLeggings", name: "Thermal Leggings", description: "Adds warmth under skirts, dresses, or jeans.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=FauxFur", name: "Faux Fur Stole", description: "A bold winter accessory that screams luxury.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Stay snug and stylish this winter with pieces that balance function and fashion. Mix textures, play with layers, and make every chilly day a style opportunity.</p>
+                `
+            },
+            12: {
+                title: "Spring Styles: Fresh Looks for the Season",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🌸 Light, Bright, and Breezy</h4>
+                    <p>Spring is the season of renewal — and your wardrobe should reflect that! Think pastel shades, floral prints, and flowy silhouettes.</p>
+                    <p>In this blog, we help you freshen up your closet with pieces that are both cheerful and practical for India’s spring-summer blend.</p>
+                    <p>The key? Color + comfort = confidence.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=FloralMaxiDress", name: "Floral Maxi Dress", description: "A breezy go-to for brunches and day outings.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=PastelLinenShirt", name: "Pastel Linen Shirt", description: "Light and breathable, yet elevated.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LightwashDenim", name: "Lightwash Denim Jacket", description: "Perfect for evenings and layering.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=ALineSkirt", name: "A-Line Skirt", description: "Feminine and flattering in cotton blends.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=EmbroideredJuttis", name: "Embroidered Juttis", description: "Add a pop of tradition to modern wear.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Spring is about keeping it light, fresh, and feel-good. Bring out soft hues, lightweight layers, and playful accessories to bloom with the season.</p>
+                `
+            },
+            13: {
+                title: "How to style a kurta in 5 different ways",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👗 One Kurta, Many Looks</h4>
+                    <p>A kurta isn’t just traditional wear — it’s a blank canvas for endless styling. With some creativity, one kurta can become five outfits for five different moods.</p>
+                    <p>This guide shows you how to pair your kurta with a variety of bottoms, accessories, and layers — from casual to festive looks.</p>
+                    <p>It’s all about maximizing what you already own.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=KurtaJeans", name: "With Jeans", description: "Casual and cool, perfect for everyday college or outings.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=KurtaSharara", name: "With Sharara", description: "A festive-ready look for weddings or events.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=KurtaAsDress", name: "As a Dress", description: "Cinch with a belt and wear it solo for a minimal chic vibe.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=KurtaLongJacket", name: "With a Long Jacket", description: "Adds layering and flair for special occasions.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=KurtaPalazzo", name: "With Palazzo Pants", description: "Elegant and comfortable for work or family functions.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Reimagining your kurta is the easiest way to extend your wardrobe. Mix, match, and elevate — it’s sustainable fashion at its best.</p>
+                `
+            },
+            14: {
+                title: "Workwear Wonders: Professional Attire",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👔 Look Sharp, Feel Sharper</h4>
+                    <p>Whether it's meetings, interviews, or Zoom calls — how you dress can boost confidence and perception. Smart workwear helps you show up and stand out.</p>
+                    <p>In this blog, we’ll help you curate a work wardrobe that’s modern, comfortable, and professional — with a desi twist when needed.</p>
+                    <p>Dress like you mean business.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=TailoredBlazer", name: "Tailored Blazer", description: "Structured and sleek for presentations or leadership roles.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=MonochromeKurti", name: "Monochrome Kurti Set", description: "Sophisticated and comfortable for long hours.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ButtonDown", name: "Button-Down Shirt", description: "A versatile base for layering or accessorizing.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CigarettePants", name: "Cigarette Pants", description: "Crisp and flattering for all body types.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=NeutralTote", name: "Neutral Tote Bag", description: "Practical yet polished.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Workwear is an investment in yourself. When you look good, you feel good — and that’s the ultimate power move.</p>
+                `
+            },
+            15: {
+                title: "Casual Chic: Effortless Everyday Style",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👟 Comfort Meets Style</h4>
+                    <p>Effortless doesn’t mean boring. Casual chic is all about pulling off easy looks that still feel put-together. The formula? Comfortable fits + stylish pieces + confidence.</p>
+                    <p>From morning errands to coffee catchups, this blog shares simple outfit ideas that balance function and flair.</p>
+                    <p>Slay, even on chill days.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BasicWhiteTee", name: "Basic White Tee", description: "The ultimate layering base for jackets or scarves.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BoyfriendJeans", name: "Boyfriend Jeans", description: "Relaxed yet flattering, perfect for all-day wear.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SlipOnSneakers", name: "Slip-On Sneakers", description: "Style and comfort in one go.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CropHoodie", name: "Crop Hoodie", description: "Sporty, cute, and great for layering.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=CrossbodyBag", name: "Crossbody Bag", description: "Lightweight and adds a pop of style.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Everyday fashion can be fashionable too. With a few versatile basics, your daily outfits can still be Instagram-worthy.</p>
+                `
+            },
+            16: {
+                title: "Party Perfect: Outfits for Special Occasions",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🎉 Dress to Dazzle</h4>
+                    <p>Parties are your time to shine — literally. From family functions to club nights, you want outfits that sparkle without trying too hard.</p>
+                    <p>We cover statement looks, accessories, and styling tips to make your party prep stress-free and fabulous.</p>
+                    <p>Think glam, not gimmick.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SequinSaree", name: "Sequin Saree", description: "Traditional with a bold twist.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BodyconMidi", name: "Bodycon Midi Dress", description: "Sleek and sassy for cocktail nights.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Jumpsuit", name: "Jumpsuit", description: "Easy to wear, hard to ignore.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=StatementEarrings", name: "Statement Earrings", description: "Elevates even the simplest dress.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ClutchBag", name: "Clutch Bag", description: "Compact, classy, and convenient.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Make your party outfits a celebration of your unique style. Shine in your own way, and let your outfit do the talking.</p>
+                `
+            },
+            17: {
+                title: "Travel Style: Fashion on the Go",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">✈️ Stylish and Suitcase-Friendly</h4>
+                    <p>Whether it’s a road trip, beach vacay, or mountain retreat — travel fashion needs to be both practical and picture-ready.</p>
+                    <p>In this post, we highlight travel-ready outfits that are comfy, stylish, and easy to mix and match. Say goodbye to overpacking and hello to travel glow-ups!</p>
+                    <p>Ready, set, slay.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=DrawstringJoggers", name: "Drawstring Joggers", description: "Great for flights and long drives.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=OversizedButtonDown", name: "Oversized Button-Down", description: "Works as a top, dress, or beach cover-up.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=NeutralScarf", name: "Neutral Scarf", description: "Adds warmth, style, and can double as a blanket.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=ComfySneakers", name: "Comfy Sneakers", description: "Lightweight, breathable, and stylish.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MiniBackpack", name: "Mini Backpack", description: "Holds all essentials without the bulk.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Travel fashion is all about freedom — comfort in motion, with style in every snap. Pack smart, travel lighter, and look good doing it.</p>
+                `
+            },
+            18: {
+                title: "Denim Delights: The Ultimate Guide to Jeans",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👖 Your Denim, Your Rules</h4>
+                    <p>Denim is timeless. It’s the one staple that crosses generations, styles, and trends. But with so many cuts and fits, how do you choose?</p>
+                    <p>This post breaks down the types of jeans, how to style them, and what works best for your body type and vibe.</p>
+                    <p>It’s more than blue — it’s you.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MomJeans", name: "High-Waisted Mom Jeans", description: "Retro, relaxed, and flattering.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=SkinnyJeans", name: "Skinny Stretch Jeans", description: "Sleek and perfect for layering with boots.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=WideLegJeans", name: "Wide-Leg Jeans", description: "Breezy and bold, ideal for a street-style edge.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BlackDenim", name: "Black Denim", description: "Chic and versatile, pairs with everything.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=DenimJacket", name: "Denim Jacket", description: "A layering icon in any season.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Denim is here to stay — and evolve. Explore fits, find your favorites, and wear them your way.</p>
+                `
+            },
+            19: {
+                title: "Sporty Chic: Blending Comfort and Style",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🏃‍♀️ Fashion in Motion</h4>
+                    <p>Sporty chic is the perfect style for those who love activewear but also love looking good. It’s where function meets flair.</p>
+                    <p>From gym to street, this blog helps you rock the athleisure trend like a pro. Whether you're running errands or just love comfort-first fashion — this is for you.</p>
+                    <p>Move. Slay. Repeat.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=HighWaistLeggings", name: "High-Waist Leggings", description: "Supportive and flattering, ideal for everyday wear.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CropActiveTee", name: "Crop Active Tee", description: "Lightweight and breathable for workouts or coffee runs.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ZipUpHoodie", name: "Zip-Up Hoodie", description: "A quick layer that adds edge.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=WhiteSneakers", name: "White Sneakers", description: "The MVP of the sporty wardrobe.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SlingBeltBag", name: "Sling Belt Bag", description: "Convenient and stylish for on-the-go days.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Sporty chic isn’t just a trend — it’s a lifestyle. Combine comfort with confidence and conquer the day in style.</p>
+                `
+            },
+            20: {
+                title: "Minimalist Wardrobe: Less is More",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🖤 Simplify to Amplify</h4>
+                    <p>Minimalism isn’t about having fewer clothes — it’s about having the right clothes. A minimalist wardrobe focuses on quality, versatility, and timeless style.</p>
+                    <p>This blog walks you through how to curate a closet that’s functional, clutter-free, and totally chic. Say goodbye to “nothing to wear” days.</p>
+                    <p>Minimal = mindful + stylish.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=WhiteButtonUp", name: "White Button-Up Shirt", description: "Classic, crisp, and works for all occasions.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BlackTrousers", name: "Straight-Leg Black Trousers", description: "From office to dinner dates in one piece.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=NeutralKnitTop", name: "Neutral Knit Top", description: "Cozy and pairs with anything.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=DenimJacket", name: "Denim Jacket", description: "A repeat performer that never feels overdone.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BasicKurti", name: "Basic Kurti", description: "Elegant and effortless for daily wear.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>A minimalist wardrobe is empowering. With fewer, better choices — you’ll dress faster, feel better, and look effortlessly put together.</p>
+                `
+            },
+            21: {
+                title: "Cotton vs Rayon vs Linen",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🧵 Know Your Fabrics</h4>
+                    <p>Choosing the right fabric is key to comfort and style, especially in Indian weather. Cotton, rayon, and linen are popular choices — but what’s the difference?</p>
+                    <p>In this post, we break down each fabric’s strengths, so you can make better shopping (and styling) decisions.</p>
+                    <p>Comfort begins with the right texture.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Cotton", name: "Cotton", description: "Breathable, natural, and perfect for daily wear.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Rayon", name: "Rayon", description: "Smooth and drapey with a polished look.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Linen", name: "Linen", description: "Crisp and airy, ideal for summer sophistication.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=UseCases", name: "Best Use Cases", description: "Cotton for basics, rayon for occasionwear, linen for power dressing.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Next time you shop, check the fabric tag. Your skin will thank you — and your outfit will look way better too.</p>
+                `
+            },
+            22: {
+                title: "Street Style Savvy: Urban Fashion Guide",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🧢 Style From the Sidewalk</h4>
+                    <p>Street style is where boldness meets individuality. It’s trendy, raw, and full of personality — inspired by city life and pop culture.</p>
+                    <p>This post helps you embrace streetwear in a way that feels authentic and fun. Perfect for college days, photo walks, or weekend hangs.</p>
+                    <p>Be unapologetically you.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=GraphicTee", name: "Oversized Graphic Tee", description: "Makes a statement and pairs with anything.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BaggyJeans", name: "Baggy Jeans", description: "The relaxed fit that defines streetwear.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ChunkySneakers", name: "Chunky Sneakers", description: "Bold, comfortable, and made for walking.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CargoPants", name: "Cargo Pants", description: "Functional with pockets and swag.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BaseballCap", name: "Baseball Cap", description: "Instant street-style energy.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Street style is all about self-expression. Play with layers, logos, and attitude — the street is your runway.</p>
+                `
+            },
+            23: {
+                title: "Colour Blocking: Bold and Beautiful",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🟥🟡 Play With Power Shades</h4>
+                    <p>Color blocking is a fearless style move that turns heads. It’s about combining solid, contrasting hues to create striking outfits.</p>
+                    <p>We’ll guide you through choosing colors that complement, clash (in a good way), and elevate your overall look.</p>
+                    <p>Balance is boldness done right.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=RedPink", name: "Red + Pink", description: "Surprisingly chic and full of confidence.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BlueOrange", name: "Blue + Orange", description: "A vibrant mix with major visual impact.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=NeutralsNeon", name: "Neutrals + Neon", description: "Keep it grounded while adding flair.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=MonochromeLayers", name: "Monochrome Layers", description: "Try shades of one color for a fresh take.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Color blocking brings energy and creativity into your wardrobe. Try combos that excite you — fashion should be fun, after all!</p>
+                `
+            },
+            24: {
+                title: "Personal Styling: Finding Your Unique Look",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">✨ You, Styled</h4>
+                    <p>Personal style is more than trends — it’s your story, your vibe, your confidence. It evolves with you.</p>
+                    <p>In this blog, we help you explore your fashion identity based on your lifestyle, body shape, and personality.</p>
+                    <p>Wear your story with pride.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=MoodBoard", name: "Create a Mood Board", description: "Use Pinterest or Instagram to collect outfit inspo.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=YourStaples", name: "Identify Your Staples", description: "Are you a kurti queen or a denim lover?", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=UnderstandBody", name: "Understand Your Body", description: "Choose cuts that flatter, not just follow trends.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=DontForce", name: "Don’t Force It", description: "Style should feel like you, not a costume.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>The best style isn’t copied — it’s discovered. Take your time, experiment, and embrace what makes you feel good.</p>
+                `
+            },
+            25: {
+                title: "Fashion for All Ages: Ageless Style",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👵👩🧒 Style Has No Expiry Date</h4>
+                    <p>Fashion isn’t bound by age. From teens to seniors, great style is about dressing confidently and comfortably for your phase of life.</p>
+                    <p>This post encourages embracing your age with grace, fun, and lots of flair — because every stage is stylish.</p>
+                    <p>Wear what makes you feel alive.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Teens", name: "Teens", description: "Experiment with trends, colors, and fits.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=20s30s", name: "20s–30s", description: "Balance fun with function — invest in staples.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=40s50s", name: "40s–50s", description: "Sophistication meets confidence. Flowy silhouettes, elegant layers.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=60Plus", name: "60+", description: "Graceful prints, rich textures, and pieces that tell stories.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Fashion is about you — not your number. Rock your age and redefine what style looks like at every stage.</p>
+                `
+            },
+            26: {
+                title: "Upcycling Fashion: Give Your Clothes New Life",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">♻️ Reinvent. Reuse. Restyle.</h4>
+                    <p>Upcycling turns your old clothes into new style moments. It’s creative, eco-friendly, and totally budget-friendly.</p>
+                    <p>In this post, we share how to give forgotten items a makeover — from DIY hacks to simple sewing ideas.</p>
+                    <p>Your wardrobe already holds hidden gems.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=KurtaShrug", name: "Turn a Kurta into a Shrug", description: "Cut and stitch creatively.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CropTees", name: "Crop Old Tees", description: "Add ruffles or raw edges for new streetwear.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=PatchworkJeans", name: "Patchwork Jeans", description: "Use old fabric scraps for custom flair.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=ReuseDupattas", name: "Reuse Dupattas", description: "Transform into skirts, tops, or scarves.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=DyeFaded", name: "Dye Faded Clothes", description: "Bring them back with bold new shades.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Upcycling isn’t just sustainable — it’s stylish. You don’t need to buy more to have more looks. Reinvent what you already own.</p>
+                `
+            },
+            27: {
+                title: "Luxury Fashion: Investment Pieces",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">💎 Buy Less, Buy Luxe</h4>
+                    <p>Luxury fashion isn’t always about logos — it’s about craftsmanship, longevity, and timeless beauty.</p>
+                    <p>This blog helps you decide when and how to invest in fashion that’s worth the splurge.</p>
+                    <p>Quality > Quantity always wins.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=LeatherHandbag", name: "Leather Handbag", description: "A structured piece that ages beautifully.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=CashmereSweater", name: "Cashmere Sweater", description: "Soft, durable, and elegant.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SilkSaree", name: "Silk Saree", description: "A cultural treasure that never goes out of style.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=TailoredBlazer", name: "Tailored Blazer", description: "Sharp, sophisticated, and forever stylish.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=GoldStuds", name: "Gold Stud Earrings", description: "Understated luxury that works daily.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Luxury fashion is about smart choices. Invest in pieces that serve you for years — in style, in comfort, and in confidence.</p>
+                `
+            },
+            28: {
+                title: "Heels vs Flats",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">👠👟 The Great Debate</h4>
+                    <p>Some swear by stilettos. Others won’t give up their flats. So, which is better? Truth is — both have their place.</p>
+                    <p>This post compares heels and flats across occasions, comfort, and style impact, helping you pick the right pair.</p>
+                    <p>Choose your sole-mate wisely.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Heels", name: "Heels", description: "Add height, elegance, and are perfect for events or nights out.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=Flats", name: "Flats", description: "Great for daily wear, work commutes, or travel.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=HeeledMules", name: "Heeled Mules", description: "The best of both worlds.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=BalletFlats", name: "Ballet Flats", description: "Feminine and timeless.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=Wedges", name: "Wedges", description: "More support than stilettos, still gives lift.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>There’s no winner here — just options. Pick based on your day, your vibe, and what makes you feel your best.</p>
+                `
+            },
+            29: {
+                title: "Minimalist Sunglasses Style Everyone Is Buying",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">🕶️ Small Frames, Big Style</h4>
+                    <p>Minimalist sunglasses are having a moment — clean lines, thin frames, and versatile colors that go with everything.</p>
+                    <p>This post shares why less is more when it comes to eyewear — and which styles are trending now.</p>
+                    <p>Shade smartly.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=ThinGold", name: "Thin Gold Frames", description: "Elegant and subtle.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=MatteBlack", name: "Matte Black Squares", description: "Timeless cool.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=RetroOvals", name: "Retro Ovals", description: "A nod to the '90s with a sleek twist.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=TransparentFrames", name: "Transparent Frames", description: "Light, fresh, and futuristic.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=BrownGradient", name: "Brown Gradient Lens", description: "Softens the look and flatters all skin tones.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Minimalist sunglasses are the quiet stars of your outfit. One pair can elevate any look — whether glam or casual.</p>
+                `
+            },
+            30: {
+                title: "Best Smartwatches for Fitness and Fashion Combined",
+                primaryContent: `
+                    <h4 class="text-xl font-semibold text-white mb-4">⌚ Tech Meets Trend</h4>
+                    <p>Gone are the days when smartwatches looked clunky. Today’s models are sleek, stylish, and perfect for daily wear.</p>
+                    <p>In this blog, we explore top picks that track steps and match your outfit — because fashion should be functional too.</p>
+                    <p>Stay fit and fabulous.</p>
+                `,
+                products: [
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=AmazfitGTS", name: "Amazfit GTS Series", description: "Affordable, elegant, and packed with features.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=AppleWatchSE", name: "Apple Watch SE", description: "Seamless with iPhones and customizable bands.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=SamsungGalaxy", name: "Samsung Galaxy Watch", description: "Great display and solid fitness tracking.", link: "#" },
+                    { img: "https://placehold.co/150x200/3B82F6/FFFFFF?text=FossilHybrid", name: "Fossil Hybrid HR", description: "Analog + digital = classy tech.", link: "#" },
+                    { img: "https://placehold.co/150x200/8B5CF6/FFFFFF?text=NoiseColorFit", name: "Noise ColorFit Ultra", description: "Budget-friendly with tons of looks.", link: "#" },
+                ],
+                secondaryContent: `
+                    <h4 class="text-xl font-semibold text-white mt-6 mb-4">💡 Your Style, Elevated</h4>
+                    <p>Your watch can now be your fitness partner and your fashion statement. Choose one that matches both your lifestyle and your aesthetic.</p>
+                `
+            },
+        };
+
+        readMoreButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const blogId = button.dataset.blogId;
+                const blog = blogData[blogId];
+
+                if (blog) {
+                    modalBlogTitle.textContent = blog.title;
+                    modalBlogPrimaryContent.innerHTML = blog.primaryContent;
+                    modalBlogSecondaryContent.innerHTML = blog.secondaryContent;
+
+                    // Populate product slider
+                    modalProductSlider.innerHTML = ''; // Clear previous products
+                    blog.products.forEach(product => {
+                        modalProductSlider.innerHTML += generateProductCardHtml(product);
+                    });
+
+                    blogModalOverlay.classList.add('open');
+                    document.body.style.overflow = 'hidden'; // Disable scrolling on body
+                }
+            });
+        });
+
+        modalCloseButton.addEventListener('click', () => {
+            blogModalOverlay.classList.remove('open');
+            document.body.style.overflow = ''; // Enable scrolling on body
+        });
+
+        // Close modal if clicked outside content
+        blogModalOverlay.addEventListener('click', (event) => {
+            if (event.target === blogModalOverlay) {
+                blogModalOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Product slider navigation
+        productSliderLeftArrow.addEventListener('click', () => {
+            modalProductSlider.scrollBy({
+                left: -modalProductSlider.offsetWidth * 0.8, // Scroll by 80% of current width
+                behavior: 'smooth'
+            });
+        });
+
+        productSliderRightArrow.addEventListener('click', () => {
+            modalProductSlider.scrollBy({
+                left: modalProductSlider.offsetWidth * 0.8, // Scroll by 80% of current width
+                behavior: 'smooth'
+            });
+        });
+
+        // New functionality for opening blog modal directly from URL query parameter
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const blogIdFromUrl = urlParams.get('blog');
+
+            if (blogIdFromUrl) {
+                const targetButton = document.querySelector(`.read-more-btn[data-blog-id="${blogIdFromUrl}"]`);
+                if (targetButton) {
+                    // Slight delay to ensure all page elements are rendered before attempting to open modal
+                    setTimeout(() => {
+                        targetButton.click();
+                    }, 100); 
+                }
+            }
+        });
+    </script>
+</body>
+</html>
